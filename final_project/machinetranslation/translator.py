@@ -1,48 +1,38 @@
-import json
-from ibm_watson import LanguageTranslatorV3
-from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 import os
 from dotenv import load_dotenv
+from ibm_watson import LanguageTranslatorV3
+from ibm_cloud_sdk_core.authenticators import IAMAuthenticator
 
-load_dotenv()
+def init_translator():
+    load_dotenv()
+    apikey = os.environ['apikey']
+    url = os.environ['url']
+    authenticator = IAMAuthenticator(apikey)
+    language_translator = LanguageTranslatorV3(
+         version='2018-05-01',
+         authenticator=authenticator
+        )
+    language_translator.set_service_url(url)
+    return language_translator
 
-apikey = os.environ['apikey']
-url = os.environ['url']
-model_id = 'en-fr'
-model_id2 = 'fr-en'
-englishText = 'Hope you are having a good day'
-frenchText = "J'espère que tu passes une bonne journée"
+def english_to_french (english_text, language_translator):
+    english_translate_text = english_text
+    if len(english_translate_text):
+        translation = language_translator.translate(
+        text=english_translate_text,
+        model_id='en-fr').get_result()
+        french_text = translation["translations"][0]["translation"]
+    else:
+        french_text = "Invalid Text"
+    return french_text
 
-
-authenticator = IAMAuthenticator(apikey)
-language_translator = LanguageTranslatorV3(
-    version='2018-05-01',
-    authenticator=authenticator
-)
-
-language_translator.set_service_url(url)
-
-translation = language_translator.translate(
-    text=englishText,
-    model_id=model_id).get_result()
-#print(json.dumps(translation, indent=2, ensure_ascii=False))
-
-def englishToFrench(englishText):
-    frenchText = translation
-    return frenchText
-
-
-translation2 = language_translator.translate(
-    text=frenchText,
-    model_id=model_id2).get_result()
-
-
-def frenchToEnglish(frenchText):
-    englishText = translation2
-    return englishText
-
-translatedText = englishToFrench(englishText)
-translatedText2 = frenchToEnglish(frenchText)
-
-print("English to French : ", translatedText)
-print("French to English",translatedText2)
+def french_to_english (french_text, language_translator):
+    french_translate_text = french_text
+    if len(french_translate_text):
+        translation = language_translator.translate(
+        text=french_translate_text,
+        model_id='fr-en').get_result()
+        english_text = translation["translations"][0]["translation"]
+    else:
+        english_text = "Invalid Text"
+    return english_text
